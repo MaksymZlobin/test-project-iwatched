@@ -29,6 +29,10 @@ class Film(models.Model):
     def __str__(self):
         return f'{self.name} (object ID {self.id})'
 
+    @property
+    def rating(self):
+        return self.rates.all().aggregate(models.Avg('value'))['value__avg']
+
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
