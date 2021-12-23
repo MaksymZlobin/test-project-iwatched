@@ -19,6 +19,13 @@ class FilmsListAPIView(ListAPIView):
     queryset = Film.objects.all()
     serializer_class = FilmDetailSerializer
 
+    def get_queryset(self):
+        qs = self.queryset.all()
+        print(qs)
+        genre = self.request.query_params.get('genre')
+        print(genre)
+        return qs.filter(genre__name=genre)
+
 
 class FilmDetailAPIView(RetrieveAPIView):
     """Detail film"""
