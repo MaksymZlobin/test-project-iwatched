@@ -15,20 +15,17 @@ from main.models import Film, FilmsList, CustomUser, Comment, Franchise, Genre, 
 
 
 class FilmsListAPIView(ListAPIView):
-    """List of films"""
     queryset = Film.objects.all()
     serializer_class = FilmDetailSerializer
 
     def get_queryset(self):
         qs = self.queryset.all()
-        print(qs)
         genre = self.request.query_params.get('genre')
         print(genre)
         return qs.filter(genre__name=genre)
 
 
 class FilmDetailAPIView(RetrieveAPIView):
-    """Detail film"""
     queryset = Film.objects.all()
     serializer_class = FilmDetailSerializer
     lookup_url_kwarg = 'film_id'
@@ -42,6 +39,7 @@ class RegisterAPIView(CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
         user = authenticate(email=request.POST.get('email'), password=request.POST.get('password'))
         if user:
             login(request, user)
