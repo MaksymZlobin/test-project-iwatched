@@ -1,6 +1,7 @@
 from django.contrib.auth import login, authenticate
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, filters
+from django.db.models import Q
+from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.generics import (
     RetrieveAPIView,
     CreateAPIView,
@@ -8,8 +9,9 @@ from rest_framework.generics import (
     UpdateAPIView,
     RetrieveUpdateAPIView,
 )
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from main.api.permissions import IsAnonymousUser
 from main.api.serializers import FilmDetailSerializer, RegisterSerializer
@@ -24,7 +26,12 @@ class FilmsListAPIView(ListAPIView):
     def get_queryset(self):
         qs = self.queryset.all()
         genre = self.request.query_params.get('genre')
-        return set(qs.filter(genre__name__in=genre.split(',')))
+        if genre:
+            for genre_name in genre.split(','):
+                qs = qs.filter(genre__name=genre_name)
+                if not qs:
+                    break
+        return qs
 
 
 class FilmDetailAPIView(RetrieveAPIView):
@@ -43,6 +50,16 @@ class RegisterAPIView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         user = authenticate(email=request.POST.get('email'), password=request.POST.get('password'))
+        token, created = Token.objects.get_or_create(user=user)
         if user:
             login(request, user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(data={'token': token.key, 'user': serializer.data}, status=status.HTTP_201_CREATED)
+
+
+class LogoutAPIView(APIView):
+    permission_classes = [IsAuthenticated, ]
+
+    def post(self, request):
+        request.user.auth_token.delete()
+        return Response(data={'message': 'User Logged out successfully!'}, status=status.HTTP_200_OK)
+
