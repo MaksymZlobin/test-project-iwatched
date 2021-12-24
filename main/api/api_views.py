@@ -1,4 +1,5 @@
 from django.contrib.auth import login, authenticate
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, filters
 from rest_framework.generics import (
     RetrieveAPIView,
@@ -7,6 +8,7 @@ from rest_framework.generics import (
     UpdateAPIView,
     RetrieveUpdateAPIView,
 )
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from main.api.permissions import IsAnonymousUser
@@ -17,12 +19,12 @@ from main.models import Film, FilmsList, CustomUser, Comment, Franchise, Genre, 
 class FilmsListAPIView(ListAPIView):
     queryset = Film.objects.all()
     serializer_class = FilmDetailSerializer
+    permission_classes = [AllowAny, ]
 
     def get_queryset(self):
         qs = self.queryset.all()
         genre = self.request.query_params.get('genre')
-        print(genre)
-        return qs.filter(genre__name=genre)
+        return set(qs.filter(genre__name__in=genre.split(',')))
 
 
 class FilmDetailAPIView(RetrieveAPIView):
