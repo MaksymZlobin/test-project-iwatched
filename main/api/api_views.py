@@ -105,7 +105,7 @@ class CreateUpdateRateAPIView(APIView):
         serializer = self.serializer_class(data=data)
         rates_list = self.queryset.filter(user=data['user'], film=data['film'])
         if rates_list.count() > 1:
-            return Response(data={'message': 'More than one!'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={'message': 'More than one value!'}, status=status.HTTP_400_BAD_REQUEST)
         if rates_list:
             rate = rates_list.first()
             rate.value = data['value']

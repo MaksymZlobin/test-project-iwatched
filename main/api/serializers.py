@@ -23,17 +23,20 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
 
 class FilmDetailSerializer(serializers.ModelSerializer):
-    franchise = FranchiseSerializer(required=False)
-    genre = GenreSerializer(required=False, many=True)
+    franchise = FranchiseSerializer()
+    genre = GenreSerializer(many=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Film
-        fields = ['id', 'name', 'synopsis', 'genre', 'poster', 'release_date', 'franchise']
+        fields = ['id', 'name', 'synopsis', 'genre', 'poster', 'release_date', 'franchise', 'rating']
+
+    def get_rating(self, film):
+        return round(film.rating, 1)
 
 
-class FilmsListSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer(required=True)
-    film = FilmDetailSerializer(required=True, many=True)
+class UserFilmsListSerializer(serializers.ModelSerializer):
+    film = FilmDetailSerializer(many=True)
 
     class Meta:
         model = FilmsList
