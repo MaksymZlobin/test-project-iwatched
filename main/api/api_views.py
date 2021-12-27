@@ -1,5 +1,4 @@
 from django.contrib.auth import login, authenticate
-from django.db.models import Q
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import (
@@ -14,7 +13,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from main.api.permissions import IsAnonymousUser, IsCurrentUser
-from main.api.serializers import FilmDetailSerializer, RegisterSerializer, ProfileSerializer, CommentCreateSerializer
+from main.api.serializers import (
+    FilmDetailSerializer,
+    RegisterSerializer,
+    ProfileSerializer,
+    CommentCreateSerializer,
+    RateSerializer,
+)
 from main.models import Film, FilmsList, CustomUser, Comment, Franchise, Genre, Rate
 
 
@@ -88,3 +93,25 @@ class CommentCreateAPIView(CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class CreateUpdateRateAPIView(APIView):
+    queryset = Rate.objects.all()
+    serializer_class = RateSerializer
+    permission_classes = [IsAuthenticated, ]
+
+    def post(self, request, *args, **kwargs):
+        data = request.data.copy()
+        data['user'] = request.user.id
+        data['film'] = self.kwargs.get('film_id')
+        serializer = self.serializer_class(data=data)
+        rates_list = self.queryset.filter(user=data['user'], film=data['film'])
+        if rates_list.count() > 1:
+            return Response(data={'message': 'More than one!'}, status=status.HTTP_400_BAD_REQUEST)
+        if rates_list:
+            rate = rates_list.first()
+            rate.value = data['value']
+            rate.save()
+            return Response(data=self.serializer_class(instance=rate).data, status=status.HTTP_200_OK)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

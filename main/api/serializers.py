@@ -47,12 +47,10 @@ class CommentCreateSerializer(serializers.ModelSerializer):
 
 
 class RateSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer(required=True)
-    film = FilmDetailSerializer(required=True)
 
     class Meta:
         model = Rate
-        fields = ['id', 'user', 'film', 'value']
+        fields = ['user', 'film', 'value']
 
 
 class RegisterSerializer(serializers.ModelSerializer):

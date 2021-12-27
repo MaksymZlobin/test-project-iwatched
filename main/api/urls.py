@@ -8,12 +8,14 @@ from main.api.api_views import (
     LogoutAPIView,
     ProfileAPIView,
     CommentCreateAPIView,
+    CreateUpdateRateAPIView,
 )
 
 urlpatterns = [
     path('films/', FilmsListAPIView.as_view(), name='films'),
     path('films/<int:film_id>/', FilmDetailAPIView.as_view(), name='film'),
     path('films/<int:film_id>/create-comment', CommentCreateAPIView.as_view(), name='comment'),
+    path('films/<int:film_id>/rate', CreateUpdateRateAPIView.as_view(), name='rate'),
     path('register/', RegisterAPIView.as_view(), name='register'),
     path('login/', ObtainAuthToken.as_view(), name='login'),
     path('logout/', LogoutAPIView.as_view(), name='logout'),
