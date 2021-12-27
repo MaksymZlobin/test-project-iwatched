@@ -40,13 +40,10 @@ class FilmsListSerializer(serializers.ModelSerializer):
         fields = ['id', 'type', 'user', 'film', 'private']
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    author = CustomUserSerializer(required=False)
-    film = FilmDetailSerializer(required=True)
-
+class CommentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ['id', 'film', 'author', 'text', 'date']
+        fields = ['film', 'author', 'text']
 
 
 class RateSerializer(serializers.ModelSerializer):
@@ -78,3 +75,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    email = serializers.CharField(required=False)
+
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'first_name', 'last_name']

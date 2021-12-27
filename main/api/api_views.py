@@ -13,8 +13,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from main.api.permissions import IsAnonymousUser
-from main.api.serializers import FilmDetailSerializer, RegisterSerializer
+from main.api.permissions import IsAnonymousUser, IsCurrentUser
+from main.api.serializers import FilmDetailSerializer, RegisterSerializer, ProfileSerializer, CommentCreateSerializer
 from main.models import Film, FilmsList, CustomUser, Comment, Franchise, Genre, Rate
 
 
@@ -62,4 +62,29 @@ class LogoutAPIView(APIView):
     def post(self, request):
         request.user.auth_token.delete()
         return Response(data={'message': 'User Logged out successfully!'}, status=status.HTTP_200_OK)
+
+
+class ProfileAPIView(RetrieveUpdateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = ProfileSerializer
+    permission_classes = [IsCurrentUser, ]
+    lookup_url_kwarg = 'user_id'
+
+
+class CommentCreateAPIView(CreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentCreateSerializer
+    permission_classes = [AllowAny, ]
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        if request.user.is_authenticated:
+            data['author'] = request.user.id
+        data['film'] = self.kwargs.get('film_id')
+        serializer = self.get_serializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
