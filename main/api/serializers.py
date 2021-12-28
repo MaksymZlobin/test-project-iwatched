@@ -16,12 +16,6 @@ class GenreSerializer(serializers.ModelSerializer):
         fields = ['name', ]
 
 
-class CustomUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
-
-
 class FilmDetailSerializer(serializers.ModelSerializer):
     franchise = FranchiseSerializer()
     genre = GenreSerializer(many=True)
@@ -43,6 +37,12 @@ class UserFilmsListSerializer(serializers.ModelSerializer):
         fields = ['id', 'type', 'user', 'film', 'private']
 
 
+class CustomUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+
+
 class CommentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
@@ -50,7 +50,6 @@ class CommentCreateSerializer(serializers.ModelSerializer):
 
 
 class RateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Rate
         fields = ['user', 'film', 'value']
@@ -80,7 +79,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     email = serializers.CharField(required=False)
+    films_lists = UserFilmsListSerializer(many=True)
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'first_name', 'last_name']
+        fields = ['email', 'first_name', 'last_name', 'films_lists']
