@@ -54,7 +54,7 @@ class RegisterAPIView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        user = authenticate(email=request.POST.get('email'), password=request.POST.get('password'))
+        user = authenticate(username=request.POST.get('username'), password=request.POST.get('password'))
         token, created = Token.objects.get_or_create(user=user)
         if user:
             login(request, user)
