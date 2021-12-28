@@ -121,7 +121,7 @@ class CreateUpdateRateAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AddDeleteFilmAPIView(RetrieveUpdateDestroyAPIView):
+class AddDeleteFilmAPIView(RetrieveUpdateAPIView):
     queryset = FilmsList.objects.all()
     serializer_class = UserFilmsListSerializer
     permission_classes = [IsCurrentUser, ]
