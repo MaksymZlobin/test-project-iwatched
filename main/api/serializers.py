@@ -79,7 +79,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     email = serializers.CharField(required=False)
-    films_lists = UserFilmsListSerializer(many=True)
+    films_lists = UserFilmsListSerializer(read_only=True, many=True)
 
     class Meta:
         model = CustomUser

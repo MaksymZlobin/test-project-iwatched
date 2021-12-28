@@ -1,12 +1,13 @@
 from django.contrib.auth import login, authenticate
-from rest_framework import status
+from django.db.models import Avg
+from rest_framework import status, filters
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import (
     RetrieveAPIView,
     CreateAPIView,
     ListAPIView,
-    UpdateAPIView,
     RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -19,14 +20,17 @@ from main.api.serializers import (
     ProfileSerializer,
     CommentCreateSerializer,
     RateSerializer,
+    UserFilmsListSerializer,
 )
 from main.models import Film, FilmsList, CustomUser, Comment, Franchise, Genre, Rate
 
 
 class FilmsListAPIView(ListAPIView):
-    queryset = Film.objects.all()
+    queryset = Film.objects.all().annotate(film_rating=Avg('rates__value'))
     serializer_class = FilmDetailSerializer
     permission_classes = [AllowAny, ]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['film_rating', ]
 
     def get_queryset(self):
         qs = self.queryset.all()
@@ -115,3 +119,11 @@ class CreateUpdateRateAPIView(APIView):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AddDeleteFilmAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = FilmsList.objects.all()
+    serializer_class = UserFilmsListSerializer
+    permission_classes = [IsCurrentUser, ]
+    lookup_url_kwarg = 'films_list_id'
+

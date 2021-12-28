@@ -9,6 +9,7 @@ from main.api.api_views import (
     ProfileAPIView,
     CommentCreateAPIView,
     CreateUpdateRateAPIView,
+    AddDeleteFilmAPIView,
 )
 
 urlpatterns = [
@@ -20,4 +21,5 @@ urlpatterns = [
     path('login/', ObtainAuthToken.as_view(), name='login'),
     path('logout/', LogoutAPIView.as_view(), name='logout'),
     path('profile/<int:user_id>/', ProfileAPIView.as_view(), name='profile'),
+    path('profile/<int:user_id>/films-list/<int:films_list_id>', AddDeleteFilmAPIView.as_view(), name='films_list'),
 ]
