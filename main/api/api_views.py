@@ -43,7 +43,8 @@ class FilmsListAPIView(ListAPIView):
 
 
 class FilmDetailAPIView(RetrieveAPIView):
-    queryset = Film.objects.all().annotate(film_rating=Avg('rates__value'), franchise_films='franchise__films')
+    queryset = Film.objects.all()
+    # .annotate(film_rating=Avg('rates__value'), franchise_films='franchise__films')
     serializer_class = FilmDetailSerializer
     lookup_url_kwarg = 'film_id'
 
