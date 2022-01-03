@@ -9,7 +9,7 @@ from main.api.api_views import (
     ProfileAPIView,
     CommentCreateAPIView,
     CreateUpdateRateAPIView,
-    AddDeleteFilmAPIView,
+    AddFilmToListAPIView,
 )
 
 urlpatterns = [
@@ -17,9 +17,9 @@ urlpatterns = [
     path('films/<int:film_id>/', FilmDetailAPIView.as_view(), name='film'),
     path('films/<int:film_id>/create-comment', CommentCreateAPIView.as_view(), name='comment'),
     path('films/<int:film_id>/rate', CreateUpdateRateAPIView.as_view(), name='rate'),
+    path('films/<int:film_id>/add-to-list/<int:films_list_id>', AddFilmToListAPIView.as_view(), name='ad_to_list'),
     path('register/', RegisterAPIView.as_view(), name='register'),
     path('login/', ObtainAuthToken.as_view(), name='login'),
     path('logout/', LogoutAPIView.as_view(), name='logout'),
     path('profile/<int:user_id>/', ProfileAPIView.as_view(), name='profile'),
-    path('profile/<int:user_id>/films-list/<int:films_list_id>', AddDeleteFilmAPIView.as_view(), name='films_list'),
 ]

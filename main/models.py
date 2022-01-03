@@ -47,6 +47,9 @@ class FilmsList(models.Model):
     film = models.ManyToManyField(Film, related_name='films_lists')
     private = models.BooleanField(default=True)
 
+    class Meta:
+        unique_together = ['user', 'type']
+
     def __str__(self):
         return f'Films list by - {self.user}. Type: {self.type}'
 

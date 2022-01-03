@@ -7,13 +7,12 @@ from rest_framework.generics import (
     CreateAPIView,
     ListAPIView,
     RetrieveUpdateAPIView,
-    RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from main.api.permissions import IsAnonymousUser, IsCurrentUser
+from main.api.permissions import IsAnonymousUser, IsCurrentUserByUserId, IsCurrentUserByFilmsListId
 from main.api.serializers import (
     FilmDetailSerializer,
     RegisterSerializer,
@@ -44,7 +43,7 @@ class FilmsListAPIView(ListAPIView):
 
 
 class FilmDetailAPIView(RetrieveAPIView):
-    queryset = Film.objects.all()
+    queryset = Film.objects.all().annotate(film_rating=Avg('rates__value'), franchise_films='franchise__films')
     serializer_class = FilmDetailSerializer
     lookup_url_kwarg = 'film_id'
 
@@ -76,7 +75,7 @@ class LogoutAPIView(APIView):
 class ProfileAPIView(RetrieveUpdateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = ProfileSerializer
-    permission_classes = [IsCurrentUser, ]
+    permission_classes = [IsCurrentUserByUserId, ]
     lookup_url_kwarg = 'user_id'
 
 
@@ -121,9 +120,37 @@ class CreateUpdateRateAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AddDeleteFilmAPIView(RetrieveUpdateAPIView):
-    queryset = FilmsList.objects.all()
-    serializer_class = UserFilmsListSerializer
-    permission_classes = [IsCurrentUser, ]
-    lookup_url_kwarg = 'films_list_id'
+class AddFilmToListAPIView(APIView):
+    queryset = Film.objects.all()
+    permission_classes = [IsCurrentUserByFilmsListId, ]
 
+    def get_film_and_list(self, **kwargs):
+        film_id = kwargs.get('film_id')
+        films_list_id = kwargs.get('films_list_id')
+        film = self.queryset.get(id=film_id)
+        films_list = FilmsList.objects.get(id=films_list_id)
+        return film, films_list
+
+    def post(self, request, *args, **kwargs):
+        film, films_list = self.get_film_and_list(**kwargs)
+        films_list.film.add(film)
+        user_lists = request.user.films_lists.all().exclude(id=films_list.id)
+        for user_list in user_lists:
+            user_list.film.remove(film)
+        return Response(
+            data={'message': f'Film {film.id} added to list {films_list.id} successfully!'},
+            status=status.HTTP_200_OK
+        )
+
+    def delete(self, request, *args, **kwargs):
+        film, films_list = self.get_film_and_list(**kwargs)
+        if film in films_list.film.all():
+            films_list.film.remove(film)
+            return Response(
+                data={'message': f'Film {film.id} removed from list {films_list.id} successfully!'},
+                status=status.HTTP_200_OK
+            )
+        return Response(
+            data={'message': f'Film {film.id} not found in list {films_list.id}!'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
