@@ -6,7 +6,7 @@ from rest_framework.generics import (
     RetrieveAPIView,
     CreateAPIView,
     ListAPIView,
-    RetrieveUpdateAPIView,
+    RetrieveUpdateAPIView, UpdateAPIView,
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -19,9 +19,9 @@ from main.api.serializers import (
     ProfileSerializer,
     CommentCreateSerializer,
     RateSerializer,
-    UserFilmsListSerializer,
+    UserFilmsListUpdateSerializer,
 )
-from main.models import Film, FilmsList, CustomUser, Comment, Franchise, Genre, Rate
+from main.models import Film, FilmsList, CustomUser, Comment, Rate
 
 
 class FilmsListAPIView(ListAPIView):
@@ -44,7 +44,6 @@ class FilmsListAPIView(ListAPIView):
 
 class FilmDetailAPIView(RetrieveAPIView):
     queryset = Film.objects.all()
-    # .annotate(film_rating=Avg('rates__value'), franchise_films='franchise__films')
     serializer_class = FilmDetailSerializer
     lookup_url_kwarg = 'film_id'
 
@@ -155,3 +154,10 @@ class AddFilmToListAPIView(APIView):
             data={'message': f'Film {film.id} not found in list {films_list.id}!'},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class PrivateStatusAPIView(UpdateAPIView):
+    queryset = FilmsList.objects.all()
+    permission_classes = [IsCurrentUserByFilmsListId, ]
+    serializer_class = UserFilmsListUpdateSerializer
+    lookup_url_kwarg = 'films_list_id'

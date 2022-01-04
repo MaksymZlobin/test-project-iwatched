@@ -20,21 +20,36 @@ class FilmDetailSerializer(serializers.ModelSerializer):
     franchise = FranchiseSerializer()
     genre = GenreSerializer(many=True)
     rating = serializers.SerializerMethodField()
+    franchise_films = serializers.SerializerMethodField()
 
     class Meta:
         model = Film
-        fields = ['id', 'name', 'synopsis', 'genre', 'poster', 'release_date', 'franchise', 'rating']
+        fields = ['id', 'name', 'synopsis', 'genre', 'poster', 'release_date', 'franchise', 'franchise_films', 'rating']
 
     def get_rating(self, film):
         return round(film.rating, 1)
 
+    def get_franchise_films(self, obj):
+        if obj.franchise:
+            franchise_films = {}
+            for film in obj.franchise.films.all():
+                franchise_films[film.id] = film.name
+            return franchise_films
+
 
 class UserFilmsListSerializer(serializers.ModelSerializer):
-    film = FilmDetailSerializer(many=True)
+    film = FilmDetailSerializer(many=True, required=False)
 
     class Meta:
         model = FilmsList
         fields = ['id', 'type', 'user', 'film', 'private']
+
+
+class UserFilmsListUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FilmsList
+        fields = ['id', 'type', 'user', 'private']
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
