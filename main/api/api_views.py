@@ -45,6 +45,7 @@ class FilmsListAPIView(ListAPIView):
 class FilmDetailAPIView(RetrieveAPIView):
     queryset = Film.objects.all()
     serializer_class = FilmDetailSerializer
+    permission_classes = [AllowAny, ]
     lookup_url_kwarg = 'film_id'
 
 
