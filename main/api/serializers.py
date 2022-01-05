@@ -27,7 +27,8 @@ class FilmDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'synopsis', 'genre', 'poster', 'release_date', 'franchise', 'franchise_films', 'rating']
 
     def get_rating(self, film):
-        return round(film.rating, 1)
+        if film.rating:
+            return round(film.rating, 1)
 
     def get_franchise_films(self, obj):
         if obj.franchise:
