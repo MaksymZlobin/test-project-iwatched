@@ -1,22 +1,34 @@
 import factory
 from faker import Factory
 
-from main.constants import FIVE
+from main.constants import ONE, FIVE
+from main.models import Film, CustomUser, Rate, Genre
 
 faker = Factory.create()
 
 
+class GenreFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Genre
+
+    name = factory.Faker('word')
+
+
 class FilmFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = 'main.Film'
+        model = Film
 
     name = factory.Faker('word')
     synopsis = factory.Faker('sentence', nb_words=10)
 
 
+# class FilmWithGenreFactory(FilmFactory):
+#     genre = factory.SubFactory(GenreFactory)
+
+
 class CustomUserFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = 'main.CustomUser'
+        model = CustomUser
 
     username = factory.Faker('first_name')
     email = factory.LazyAttribute(lambda o: '%s@example.org' % o.username.lower())
@@ -25,10 +37,8 @@ class CustomUserFactory(factory.django.DjangoModelFactory):
 
 class RateFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = 'main.Rate'
+        model = Rate
 
     user = factory.SubFactory(CustomUserFactory)
     film = factory.SubFactory(FilmFactory)
-    value = FIVE
-
-
+    value = factory.Faker('random_int', min=ONE, max=FIVE)

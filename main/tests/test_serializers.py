@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 from main.api.serializers import FilmDetailSerializer
-from main.constants import FIVE
 from main.tests.factories import FilmFactory, RateFactory
 
 
@@ -18,5 +17,5 @@ class FilmDetailSerializerTestCase(TestCase):
 
         rating = FilmDetailSerializer(rate.film).get_rating(rate.film)
 
-        self.assertEqual(rating, FIVE)
+        self.assertEqual(rating, rate.value)
 
