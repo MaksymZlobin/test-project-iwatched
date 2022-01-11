@@ -2,8 +2,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from main.api.serializers import FilmDetailSerializer
-from main.tests.factories import FilmFactory, GenreFactory
+from main.api.serializers import FilmDetailSerializer, CommentCreateSerializer
+from main.tests.factories import FilmFactory, GenreFactory, CommentFactory, CustomUserFactory
 
 
 class FilmsListAPITestCase(APITestCase):
@@ -32,32 +32,18 @@ class FilmsListAPITestCase(APITestCase):
         self.assertEqual(response.data, expected_data)
 
 
-class RegisterAPITestCase(APITestCase):
-    # TODO def test_create
-    pass
-
-
-class ProfileAPITestCase(APITestCase):
-    # TODO IsCurrentUserByUserId
-    pass
-
-
 class CommentCreateAPITestCase(APITestCase):
-    # TODO def create
-    pass
+    def test_post_create_comment(self):
+        comment = CommentFactory()
+        comment_dict = {
+            'film': comment.film_id,
+            'author': comment.author_id,
+            'text': comment.text,
+        }
+        url = reverse('comment', kwargs={'film_id': comment.film_id})
+        expected_data = CommentCreateSerializer(comment).data
 
+        response = self.client.post(url, comment_dict)
 
-class CreateUpdateRateAPITestCase(APITestCase):
-    # TODO def post
-    pass
-
-
-class AddFilmToListAPITestCase(APITestCase):
-    # TODO def post
-    # TODO def delete
-    pass
-
-
-class PrivateStatusAPITestCase(APITestCase):
-    # TODO IsCurrentUserByFilmsListId
-    pass
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data, expected_data)

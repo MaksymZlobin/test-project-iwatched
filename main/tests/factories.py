@@ -2,7 +2,7 @@ import factory
 from faker import Factory
 
 from main.constants import ONE, FIVE
-from main.models import Film, CustomUser, Rate, Genre
+from main.models import Film, CustomUser, Rate, Genre, Comment
 
 faker = Factory.create()
 
@@ -42,3 +42,12 @@ class RateFactory(factory.django.DjangoModelFactory):
     user = factory.SubFactory(CustomUserFactory)
     film = factory.SubFactory(FilmFactory)
     value = factory.Faker('random_int', min=ONE, max=FIVE)
+
+
+class CommentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Comment
+
+    film = factory.SubFactory(FilmFactory)
+    author = factory.SubFactory(CustomUserFactory)
+    text = factory.Faker('sentence', nb_words=5)
