@@ -1,7 +1,6 @@
-import factory
-
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 from main.api.serializers import (
@@ -10,6 +9,7 @@ from main.api.serializers import (
     UserFilmsListSerializer,
     CommentCreateSerializer,
 )
+from main.constants import VALUES_CHOICES
 from main.models import Comment
 from main.tests.factories import (
     FilmFactory,
@@ -52,13 +52,13 @@ class CommentCreateAPITestCase(APITestCase):
         self.film = FilmFactory()
         self.user = CustomUserFactory()
 
-    def test_user_create_comment(self):
-        url = reverse('comment', args=(self.film.id,))
+    def test_login_user_create_comment(self):
         created_data = {
             'film': self.film.id,
             'author': self.user.id,
             'text': 'test_text',
         }
+        url = reverse('comment', args=(self.film.id,))
         expected_data = CommentCreateSerializer(data=created_data).initial_data
 
         response = self.client.post(url, created_data)
@@ -67,11 +67,11 @@ class CommentCreateAPITestCase(APITestCase):
         self.assertEqual(response.data, expected_data)
 
     def test_anonymous_user_create_comment(self):
-        url = reverse('comment', args=(self.film.id,))
         created_data = {
             'film': self.film.id,
             'text': 'test_text',
         }
+        url = reverse('comment', args=(self.film.id,))
         expected_data = CommentCreateSerializer().data
 
         response = self.client.post(url, created_data)
@@ -79,17 +79,29 @@ class CommentCreateAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['author'], expected_data['author'])
 
-# class CreateUpdateRateAPITestCase(APITestCase):
-#     def test_create_rate(self):
-#         url = reverse('rate', kwargs={'film_id': self.rate_1.film_id})
-#         expected_data = RateSerializer(self.rate_dict_1).data
-#
-#         response = self.client.post(url, self.rate_dict_1)
-#
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         self.assertEqual(response.data, expected_data)
-#
-#
+
+class CreateUpdateRateAPITestCase(APITestCase):
+    def setUp(self):
+        self.film = FilmFactory()
+        self.user = CustomUserFactory()
+        self.token = Token.objects.create(user=self.user)
+
+    def test_login_user_create_film_rate(self):
+        created_data = {
+            'user': self.user.id,
+            'film': self.film.id,
+            'value': 5,
+        }
+        url = reverse('rate', args=(self.film.id,))
+        expected_data = [1, 2, 3, 4, 5]
+        self.client.force_login(self.user)
+
+        response = self.client.post(url, created_data, HTTP_AUTHORIZATION='Token {}'.format(self.token))
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn(response.data['value'], expected_data)
+
+
 # class AddFilmToListAPITestCase(APITestCase):
 #     def setUp(self):
 #         self.films_list = FilmsListFactory()
