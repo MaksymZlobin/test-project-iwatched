@@ -18,7 +18,6 @@ from main.tests.factories import (
     CommentFactory,
     CustomUserFactory,
     RateFactory,
-    FilmsListFactory,
 )
 
 
@@ -98,7 +97,7 @@ class CommentCreateAPITestCase(APITestCase):
         self.client.force_login(self.user)
 
         response = self.client.post(url, HTTP_AUTHORIZATION='Token {}'.format(self.token))
-        print(response.data)
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -150,7 +149,7 @@ class CreateUpdateRateAPITestCase(APITestCase):
         payload_data = {
             'value': self.new_value,
         }
-        url = reverse('rate', args=(self.film.id,))
+        url = reverse('rate', kwargs={'film_id': self.film.id, })
         expected_data = {'user': self.user.id, 'film': self.film.id, 'value': self.new_value}
         self.client.force_login(self.user)
 
@@ -166,7 +165,7 @@ class CreateUpdateRateAPITestCase(APITestCase):
         payload_data = {
             'value': factory.Faker('word'),
         }
-        url = reverse('rate', args=(self.film.id,))
+        url = reverse('rate', kwargs={'film_id': self.film.id, })
         self.client.force_login(self.user)
 
         response = self.client.post(url, payload_data, HTTP_AUTHORIZATION='Token {}'.format(self.token))
@@ -181,7 +180,7 @@ class AddFilmToListAPITestCase(APITestCase):
         user = CustomUserFactory()
         film = FilmFactory()
         token = Token.objects.create(user=user)
-        url = reverse('add_to_list', args=(film.id, user.films_lists.first().id))
+        url = reverse('add_to_list', kwargs={'film_id': film.id, 'films_list_id': user.films_lists.first().id, })
         self.client.force_login(user)
 
         response = self.client.post(url, HTTP_AUTHORIZATION='Token {}'.format(token))

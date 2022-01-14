@@ -112,7 +112,7 @@ class CreateUpdateRateAPIView(APIView):
             return Response(data={'message': 'More than one value!'}, status=status.HTTP_400_BAD_REQUEST)
         if rates_list:
             rate = rates_list.first()
-            serializer = self.serializer_class(rate.value, data=data['value'], partial=True)
+            serializer = self.serializer_class(rate, data={'value': data['value']}, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response(data=serializer.data, status=status.HTTP_200_OK)
@@ -129,8 +129,8 @@ class AddFilmToListAPIView(APIView):
     def get_film_and_list(self, **kwargs):
         film_id = kwargs.get('film_id')
         films_list_id = kwargs.get('films_list_id')
-        film = self.queryset.get(id=film_id)
-        films_list = FilmsList.objects.get(id=films_list_id)
+        film = self.queryset.get(id=film_id)  # TODO protect get (try/except) or get_or_404/filter().first()
+        films_list = FilmsList.objects.get(id=films_list_id)  # TODO protect get (try/except) or get_or_404/filter().first()
         return film, films_list
 
     def post(self, request, *args, **kwargs):

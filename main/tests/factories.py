@@ -47,11 +47,3 @@ class CommentFactory(factory.django.DjangoModelFactory):
         model = Comment
 
     text = factory.Faker('sentence', nb_words=5)
-
-
-class FilmsListFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = FilmsList
-
-    type = factory.Faker('random_int', min=1, max=3)
-    private = factory.Faker('pybool')
