@@ -53,5 +53,5 @@ class FilmsListFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = FilmsList
 
-    type = factory.Faker('word')
-    private = factory.Trait(status='private')
+    type = factory.Faker('random_int', min=1, max=3)
+    private = factory.Faker('pybool')

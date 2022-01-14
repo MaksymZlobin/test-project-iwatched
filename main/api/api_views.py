@@ -112,9 +112,10 @@ class CreateUpdateRateAPIView(APIView):
             return Response(data={'message': 'More than one value!'}, status=status.HTTP_400_BAD_REQUEST)
         if rates_list:
             rate = rates_list.first()
-            rate.value = data['value']
-            rate.save()
-            return Response(data=self.serializer_class(instance=rate).data, status=status.HTTP_200_OK)
+            serializer = self.serializer_class(rate.value, data=data['value'], partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(data=serializer.data, status=status.HTTP_200_OK)
         if serializer.is_valid():
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
