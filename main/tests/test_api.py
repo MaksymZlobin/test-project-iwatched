@@ -11,7 +11,7 @@ from main.api.serializers import (
     CommentCreateSerializer,
 )
 from main.constants import FIVE, TWO
-from main.models import Comment, Rate
+from main.models import Rate
 from main.tests.factories import (
     FilmFactory,
     GenreFactory,
@@ -26,6 +26,7 @@ class FilmsListAPITestCase(APITestCase):
     def setUp(self):
         self.film_1 = FilmFactory()
         self.film_2 = FilmFactory()
+        self.user = CustomUserFactory()
         self.genre_name = 'action'
 
     def test_get(self):
@@ -47,37 +48,58 @@ class FilmsListAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, expected_data)
 
+    def test_get_films_order_by_rating(self):
+        RateFactory(user=self.user, film=self.film_1, value=FIVE)
+        RateFactory(user=self.user, film=self.film_2, value=TWO)
+        url = reverse('films') + f'?ordering=-film_rating'
+        expected_data = FilmDetailSerializer([self.film_1, self.film_2, ], many=True).data
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, expected_data)
+
 
 class CommentCreateAPITestCase(APITestCase):
     def setUp(self):
         self.film = FilmFactory()
         self.user = CustomUserFactory()
+        self.comment = 'test text'
+        self.token = Token.objects.create(user=self.user)
+        self.invalid_comment = None
 
     def test_logged_in_user_create_comment(self):
         payload_data = {
-            'film': self.film.id,
-            'author': self.user.id,
-            'text': 'test_text',
+            'text': self.comment,
         }
-        url = reverse('comment', args=(self.film.id,))
+        url = reverse('comment', kwargs={'film_id': self.film.id, })
+        expected_data = {'film': self.film.id, 'author': self.user.id, 'text': self.comment}
+        self.client.force_login(self.user)
+
+        response = self.client.post(url, payload_data, HTTP_AUTHORIZATION='Token {}'.format(self.token))
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data, expected_data)
+
+    def test_anonymous_user_create_comment(self):
+        payload_data = {
+            'text': self.comment,
+        }
+        url = reverse('comment', kwargs={'film_id': self.film.id, })
+        expected_data = {'film': self.film.id, 'author': None, 'text': self.comment}
 
         response = self.client.post(url, payload_data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data, payload_data)
+        self.assertEqual(response.data, expected_data)
 
-    def test_anonymous_user_create_comment(self):
-        created_data = {
-            'film': self.film.id,
-            'text': 'test_text',
-        }
-        url = reverse('comment', args=(self.film.id,))
-        expected_data = CommentCreateSerializer().data
+    def test_logged_in_user_create_comment_invalid_data(self):
+        url = reverse('comment', kwargs={'film_id': self.film.id, })
+        self.client.force_login(self.user)
 
-        response = self.client.post(url, created_data)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['author'], expected_data['author'])
+        response = self.client.post(url, HTTP_AUTHORIZATION='Token {}'.format(self.token))
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class CreateUpdateRateAPITestCase(APITestCase):
@@ -157,13 +179,12 @@ class CreateUpdateRateAPITestCase(APITestCase):
 class AddFilmToListAPITestCase(APITestCase):
     def test_post_add_film_to_list(self):
         user = CustomUserFactory()
-        print(user.films_lists.all())
         film = FilmFactory()
         token = Token.objects.create(user=user)
         url = reverse('add_to_list', args=(film.id, user.films_lists.first().id))
         self.client.force_login(user)
 
         response = self.client.post(url, HTTP_AUTHORIZATION='Token {}'.format(token))
-        print(user.films_lists.first().film.all())
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(film in user.films_lists.first().film.all())
