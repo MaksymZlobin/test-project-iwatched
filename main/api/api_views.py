@@ -1,5 +1,6 @@
 from django.contrib.auth import login, authenticate
 from django.db.models import Avg
+from django.shortcuts import get_object_or_404
 from rest_framework import status, filters
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import (
@@ -129,8 +130,8 @@ class AddFilmToListAPIView(APIView):
     def get_film_and_list(self, **kwargs):
         film_id = kwargs.get('film_id')
         films_list_id = kwargs.get('films_list_id')
-        film = self.queryset.get(id=film_id)  # TODO protect get (try/except) or get_or_404/filter().first()
-        films_list = FilmsList.objects.get(id=films_list_id)  # TODO protect get (try/except) or get_or_404/filter().first()
+        film = get_object_or_404(self.queryset, id=film_id)
+        films_list = get_object_or_404(FilmsList, id=films_list_id)
         return film, films_list
 
     def post(self, request, *args, **kwargs):
