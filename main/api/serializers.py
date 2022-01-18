@@ -39,7 +39,9 @@ class FilmDetailSerializer(serializers.ModelSerializer):
 
 
 class FilteredUserFilmsListSerializer(serializers.ListSerializer):
-    def to_representation(self,data):
+    def to_representation(self, data):
+        if self.context['request'].user.id == self.context.get('view').kwargs.get('user_id'):
+            return super(FilteredUserFilmsListSerializer, self).to_representation(data)
         data = data.filter(private=False)
         return super(FilteredUserFilmsListSerializer,  self).to_representation(data)
 

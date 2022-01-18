@@ -1,5 +1,6 @@
 import factory
 from django.urls import reverse
+from faker import Faker
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
@@ -13,6 +14,8 @@ from main.tests.factories import (
     CustomUserFactory,
     RateFactory,
 )
+
+fake = Faker()
 
 
 class FilmsListAPITestCase(APITestCase):
@@ -305,34 +308,13 @@ class UserFilmsListsPrivateStatusAPITestCase(APITestCase):
         self.token_1 = Token.objects.create(user=self.user_1)
         self.token_2 = Token.objects.create(user=self.user_2)
         self.payload_data = {'private': False}
-
-    def test_get_user_films_list_with_another_user(self):
-        url = reverse('private', kwargs={
-            'user_id': self.user_1.id,
-            'films_list_id': self.user_1.films_lists.first().id,
-        })
-        self.client.force_login(self.user_2)
-
-        response = self.client.get(url, HTTP_AUTHORIZATION='Token {}'.format(self.token_2))
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_get_user_films_list_with_anonymous_user(self):
-        url = reverse('private', kwargs={
-            'user_id': self.user_1.id,
-            'films_list_id': self.user_1.films_lists.first().id,
-        })
-
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.invalid_payload_data = {'private': fake.word()}
 
     def test_patch_user_films_list_private_status_update(self):
         url = reverse('private', kwargs={
             'user_id': self.user_1.id,
             'films_list_id': self.user_1.films_lists.first().id,
         })
-
         self.client.force_login(self.user_1)
 
         response = self.client.patch(url, self.payload_data, HTTP_AUTHORIZATION='Token {}'.format(self.token_1))
@@ -340,12 +322,23 @@ class UserFilmsListsPrivateStatusAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['private'], False)
 
+    def test_patch_user_films_list_private_status_update_invalid_data(self):
+        url = reverse('private', kwargs={
+            'user_id': self.user_1.id,
+            'films_list_id': self.user_1.films_lists.first().id,
+        })
+        self.client.force_login(self.user_1)
+
+        response = self.client.patch(url, self.invalid_payload_data, HTTP_AUTHORIZATION='Token {}'.format(self.token_1))
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(self.user_1.films_lists.first().private, True)
+
     def test_patch_user_films_list_private_status_update_with_another_user(self):
         url = reverse('private', kwargs={
             'user_id': self.user_1.id,
             'films_list_id': self.user_1.films_lists.first().id,
         })
-
         self.client.force_login(self.user_2)
 
         response = self.client.patch(url, self.payload_data, HTTP_AUTHORIZATION='Token {}'.format(self.token_2))
@@ -364,4 +357,48 @@ class UserFilmsListsPrivateStatusAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(self.user_1.films_lists.first().private, True)
+
+
+class UserProfileFilmsListsAPITestCase(APITestCase):
+    def setUp(self):
+        self.user_1 = CustomUserFactory()
+        self.user_2 = CustomUserFactory()
+        self.token_1 = Token.objects.create(user=self.user_1)
+        self.token_2 = Token.objects.create(user=self.user_2)
+
+    def test_get_user_films_lists(self):
+        url = reverse('profile', kwargs={
+            'user_id': self.user_1.id,
+        })
+        expected_data = {
+            'email': self.user_1.email,
+            'first_name': self.user_1.first_name,
+            'last_name': self.user_1.last_name,
+            'films_lists': [],
+        }
+        self.client.force_login(self.user_1)
+
+        response = self.client.get(url, HTTP_AUTHORIZATION='Token {}'.format(self.token_1))
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # self.assertEqual(response.data, expected_data)
+
+    # def test_get_user_films_list_with_another_user(self):
+    #     url = reverse('profile', kwargs={
+    #         'user_id': self.user_1.id,
+    #     })
+    #     self.client.force_login(self.user_2)
+    #
+    #     response = self.client.get(url, HTTP_AUTHORIZATION='Token {}'.format(self.token_2))
+    #
+    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    #
+    # def test_get_user_films_list_with_anonymous_user(self):
+    #     url = reverse('profile', kwargs={
+    #         'user_id': self.user_1.id,
+    #     })
+    #
+    #     response = self.client.get(url)
+    #
+    #     self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 

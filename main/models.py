@@ -44,7 +44,7 @@ class CustomUser(AbstractUser):
 class FilmsList(models.Model):
     type = models.IntegerField(choices=FILM_LIST_TYPES)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='films_lists')
-    film = models.ManyToManyField(Film, related_name='films_lists')
+    film = models.ManyToManyField(Film, blank=True, related_name='films_lists')
     private = models.BooleanField(default=True)
 
     class Meta:
