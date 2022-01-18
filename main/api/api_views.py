@@ -77,8 +77,12 @@ class LogoutAPIView(APIView):
 class ProfileAPIView(RetrieveUpdateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = ProfileSerializer
-    permission_classes = [IsCurrentUserByUserId, ]
     lookup_url_kwarg = 'user_id'
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny(), ]
+        return [IsCurrentUserByUserId(), ]
 
 
 class CommentCreateAPIView(CreateAPIView):

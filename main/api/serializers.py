@@ -38,11 +38,18 @@ class FilmDetailSerializer(serializers.ModelSerializer):
             return franchise_films
 
 
+class FilteredUserFilmsListSerializer(serializers.ListSerializer):
+    def to_representation(self,data):
+        data = data.filter(private=False)
+        return super(FilteredUserFilmsListSerializer,  self).to_representation(data)
+
+
 class UserFilmsListSerializer(serializers.ModelSerializer):
     film = FilmDetailSerializer(many=True, required=False)
 
     class Meta:
         model = FilmsList
+        list_serializer_class = FilteredUserFilmsListSerializer
         fields = ['id', 'type', 'user', 'film', 'private']
 
 
