@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import factory
 from django.urls import reverse
 from faker import Faker
@@ -366,39 +368,186 @@ class UserProfileFilmsListsAPITestCase(APITestCase):
         self.token_1 = Token.objects.create(user=self.user_1)
         self.token_2 = Token.objects.create(user=self.user_2)
 
-    def test_get_user_films_lists(self):
+    def test_get_user_private_true_films_lists(self):
         url = reverse('profile', kwargs={
             'user_id': self.user_1.id,
         })
         expected_data = {
             'email': self.user_1.email,
-            'first_name': self.user_1.first_name,
-            'last_name': self.user_1.last_name,
-            'films_lists': [],
+            'first_name': '',
+            'last_name': '',
+            'films_lists': [
+                OrderedDict(
+                    [
+                        ('id', self.user_1.films_lists.first().id),
+                        ('type', self.user_1.films_lists.first().type),
+                        ('user', self.user_1.id),
+                        ('film', []),
+                        ('private', self.user_1.films_lists.first().private)
+                    ]
+                ),
+                OrderedDict(
+                    [
+                        ('id', self.user_1.films_lists.get(id=2).id),
+                        ('type', self.user_1.films_lists.get(id=2).type),
+                        ('user', self.user_1.id),
+                        ('film', []),
+                        ('private', self.user_1.films_lists.get(id=2).private)
+                    ]
+                ),
+                OrderedDict(
+                    [
+                        ('id', self.user_1.films_lists.get(id=3).id),
+                        ('type', self.user_1.films_lists.get(id=3).type),
+                        ('user', self.user_1.id),
+                        ('film', []),
+                        ('private', self.user_1.films_lists.get(id=3).private)
+                    ]
+                )
+            ]
         }
         self.client.force_login(self.user_1)
 
         response = self.client.get(url, HTTP_AUTHORIZATION='Token {}'.format(self.token_1))
-        print(response.data)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # self.assertEqual(response.data, expected_data)
+        self.assertEqual(response.data, expected_data)
 
-    # def test_get_user_films_list_with_another_user(self):
-    #     url = reverse('profile', kwargs={
-    #         'user_id': self.user_1.id,
-    #     })
-    #     self.client.force_login(self.user_2)
-    #
-    #     response = self.client.get(url, HTTP_AUTHORIZATION='Token {}'.format(self.token_2))
-    #
-    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-    #
-    # def test_get_user_films_list_with_anonymous_user(self):
-    #     url = reverse('profile', kwargs={
-    #         'user_id': self.user_1.id,
-    #     })
-    #
-    #     response = self.client.get(url)
-    #
-    #     self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    def test_get_user_private_true_films_lists_invalid_data(self):
+        url = reverse('profile', kwargs={
+            'user_id': 999999999,
+        })
+        self.client.force_login(self.user_1)
 
+        response = self.client.get(url, HTTP_AUTHORIZATION='Token {}'.format(self.token_1))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_user_private_true_films_list_with_another_user(self):
+        url = reverse('profile', kwargs={
+            'user_id': self.user_1.id,
+        })
+        expected_data = {'email': self.user_1.email, 'first_name': '', 'last_name': '', 'films_lists': []}
+        self.client.force_login(self.user_2)
+
+        response = self.client.get(url, HTTP_AUTHORIZATION='Token {}'.format(self.token_2))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, expected_data)
+
+    def test_get_user_private_true_films_list_with_anonymous_user(self):
+        url = reverse('profile', kwargs={
+            'user_id': self.user_1.id,
+        })
+        expected_data = {'email': self.user_1.email, 'first_name': '', 'last_name': '', 'films_lists': []}
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, expected_data)
+
+    def test_get_user_private_true_and_false_films_lists(self):
+        test_list = self.user_1.films_lists.first()
+        test_list.private = False
+        test_list.save()
+        url = reverse('profile', kwargs={
+            'user_id': self.user_1.id,
+        })
+        expected_data = {
+            'email': self.user_1.email,
+            'first_name': '',
+            'last_name': '',
+            'films_lists': [
+                OrderedDict(
+                    [
+                        ('id', self.user_1.films_lists.first().id),
+                        ('type', self.user_1.films_lists.first().type),
+                        ('user', self.user_1.id),
+                        ('film', []),
+                        ('private', self.user_1.films_lists.first().private)
+                    ]
+                ),
+                OrderedDict(
+                    [
+                        ('id', self.user_1.films_lists.get(id=2).id),
+                        ('type', self.user_1.films_lists.get(id=2).type),
+                        ('user', self.user_1.id),
+                        ('film', []),
+                        ('private', self.user_1.films_lists.get(id=2).private)
+                    ]
+                ),
+                OrderedDict(
+                    [
+                        ('id', self.user_1.films_lists.get(id=3).id),
+                        ('type', self.user_1.films_lists.get(id=3).type),
+                        ('user', self.user_1.id),
+                        ('film', []),
+                        ('private', self.user_1.films_lists.get(id=3).private)
+                    ]
+                )
+            ]
+        }
+
+        response = self.client.get(url, HTTP_AUTHORIZATION='Token {}'.format(self.token_1))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, expected_data)
+
+    def test_get_user_private_false_films_list_with_another_user(self):
+        test_list = self.user_1.films_lists.first()
+        test_list.private = False
+        test_list.save()
+        url = reverse('profile', kwargs={
+            'user_id': self.user_1.id,
+        })
+        expected_data = {
+            'email': self.user_1.email,
+            'first_name': '',
+            'last_name': '',
+            'films_lists': [
+                OrderedDict(
+                    [
+                        ('id', self.user_1.films_lists.first().id),
+                        ('type', self.user_1.films_lists.first().type),
+                        ('user', self.user_1.id),
+                        ('film', []),
+                        ('private', self.user_1.films_lists.first().private)
+                    ]
+                )
+            ]
+        }
+        self.client.force_login(self.user_2)
+
+        response = self.client.get(url, HTTP_AUTHORIZATION='Token {}'.format(self.token_2))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, expected_data)
+
+    def test_get_user_private_false_films_list_with_anonymous_user(self):
+        test_list = self.user_1.films_lists.first()
+        test_list.private = False
+        test_list.save()
+        url = reverse('profile', kwargs={
+            'user_id': self.user_1.id,
+        })
+        expected_data = {
+            'email': self.user_1.email,
+            'first_name': '',
+            'last_name': '',
+            'films_lists': [
+                OrderedDict(
+                    [
+                        ('id', self.user_1.films_lists.first().id),
+                        ('type', self.user_1.films_lists.first().type),
+                        ('user', self.user_1.id),
+                        ('film', []),
+                        ('private', self.user_1.films_lists.first().private)
+                    ]
+                )
+            ]
+        }
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, expected_data)
