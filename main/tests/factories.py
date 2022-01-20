@@ -2,7 +2,7 @@ import factory
 from faker import Factory
 
 from main.constants import ONE, FIVE
-from main.models import Film, CustomUser, Rate, Genre, Comment, FilmsList
+from main.models import Film, CustomUser, Rate, Genre, Comment
 
 faker = Factory.create()
 

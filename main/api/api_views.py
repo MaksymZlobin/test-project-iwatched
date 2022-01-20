@@ -7,7 +7,8 @@ from rest_framework.generics import (
     RetrieveAPIView,
     CreateAPIView,
     ListAPIView,
-    RetrieveUpdateAPIView, UpdateAPIView,
+    RetrieveUpdateAPIView,
+    UpdateAPIView,
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
