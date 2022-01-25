@@ -3,6 +3,26 @@
 {% block title %}All films{% endblock %}
 
 {% block content %}
-    <h1>All films</h1>
-    <p>films list</p>
+    <div class="features" style="color:blueviolet">
+
+        {% if object_list %}
+
+            {% for film in object_list %}
+                <div class="card mb-3" style="border-width:5px; border-color:blueviolet; background-color:blueviolet">
+                    <a class="card-block stretched-link text-decoration-none" href="{% url 'main:films' %}">
+                        {% if film.poster %}
+                            <img src="{{film.poster.url}}" class="card-img-top" alt="poster" height="500">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title text-white">{{film.name}}</h5>
+                            <p class="card-text text-white">{{film.synopsis|truncatechars:100}}</p>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+
+        {% else %}
+            Films not found.
+        {% endif %}
+    </div>
 {% endblock %}

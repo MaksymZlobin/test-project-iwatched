@@ -15,12 +15,13 @@
     <aside>
         <img src="{% static 'main/img/logo.png' %}" alt="logo">
         <ul>
-            <a href=""></a><li><i class="fas fa-film"></i> Films</li>
-            <a href=""></a><li><i class="fas fa-info-circle"></i> About</li>
+            <a href="{% url 'main:films' %}"><li><i class="fas fa-film"></i> Films</li></a>
+            <a href="{% url 'main:about' %}"><li><i class="fas fa-info-circle"></i> About</li></a>
         </ul>
     </aside>
     <main>
         {% block content %}
         {% endblock %}
     </main>
+</body>
 </html>
